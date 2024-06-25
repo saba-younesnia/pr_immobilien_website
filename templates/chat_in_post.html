@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatroom</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            max-width: 100%;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .chat-box {
+            border: 1px solid #ccc;
+            padding: 10px;
+            flex: 1;
+            overflow-y: scroll;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .chat-message {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 75%;
+            position: relative;
+        }
+        .sent {
+            text-align: right;
+            background-color: #d1e7dd;
+            margin-left: auto;
+            border: 1px solid #badbcc;
+        }
+        .received {
+            text-align: left;
+            background-color: #f8d7da;
+            margin-right: auto;
+            border: 1px solid #f5c2c7;
+        }
+        .timestamp {
+            font-size: 0.7em;
+            color: #888;
+            display: block;
+            text-align: right;
+            margin-top: 5px;
+        }
+        .input-group {
+            display: flex;
+        }
+        .input-group input {
+            flex: 1;
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 4px 0 0 4px;
+            border-right: 0;
+        }
+        .input-group button {
+            border: 1px solid #007bff;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+        .input-group button:hover {
+            background-color: #0056b3;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 10px;
+            text-decoration: none;
+            color: #007bff;
+            cursor: pointer;
+        }
+        .back-btn:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Chat with {{ receiver_username }}</h1>
+        <div class="chat-box mb-4">
+            {% for message in messages %}
+                <div class="chat-message {% if message[0] == sender_id %}sent{% else %}received{% endif %}">
+                    <p>{{ message[2] }}</p>
+                    <span class="timestamp">{{ message[3] }}</span>
+                    {% if message[4] %}
+                        <a href="{{ url_for('property_detail', property_id=message[4]) }}" class="back-btn">Back to Property</a>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <form action="/chat_in_post" method="post">
+            <input type="hidden" name="receiver_id" value="{{ receiver_id }}">
+            <input type="hidden" name="receiver_username" value="{{ receiver_username }}">
+            <div class="input-group mb-3">
+                <input type="text" class="form-control" name="message" placeholder="Type a message" required>
+                <button class="btn btn-primary" type="submit">Send</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

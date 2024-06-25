@@ -1,0 +1,66 @@
+{% extends "template.html" %}
+
+{% block title %}
+Sign In Page
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Sign In</h2>
+    <form id="signInForm" method="post" action="/signin" onsubmit="return validateForm()">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username">
+            <p id="usernameError" class="text-danger" style="display:none;">Please enter your username.</p>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password">
+            <p id="passwordError" class="text-danger" style="display:none;">Please enter your password.</p>
+        </div>
+        <div class="mb-3">
+            {% if no_user %}
+                <p class="alert alert-danger">Wrong Password Or Username</p>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-primary">Sign In</button>
+    </form>
+</div>
+{% endblock %}
+
+{% block header_links %}
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/signup">Sign Up</a>
+            </li>
+        </ul>
+    </div>
+
+<script>
+    function validateForm() {
+        let username = document.getElementById('username').value;
+        let password = document.getElementById('password').value;
+        let valid = true;
+
+        if (username === '') {
+            document.getElementById('usernameError').style.display = 'block';
+            valid = false;
+        } else {
+            document.getElementById('usernameError').style.display = 'none';
+        }
+
+        if (password === '') {
+            document.getElementById('passwordError').style.display = 'block';
+            valid = false;
+        } else {
+            document.getElementById('passwordError').style.display = 'none';
+        }
+
+        return valid;
+    }
+</script>
+{% endblock %}

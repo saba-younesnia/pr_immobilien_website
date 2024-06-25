@@ -1,0 +1,88 @@
+{% extends "template.html" %}
+
+{% block title %}
+Property Information
+{% endblock %}
+
+{% block header_links %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        {% if session['user_id'] %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-fill"></i>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/add_property">Add Property</a></li>
+                    <li><a class="dropdown-item" href="/estimate_value">Estimate Value</a></li>
+                    <li><a class="dropdown-item" href="/favorited_posts">Saved Properties</a></li>
+                    <li><a class="dropdown-item" href="/user_properties">Your Properties</a></li>
+                    <li><a class="dropdown-item" href="/conversations">Your Chats</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/signout">Sign Out</a></li>
+                </ul>
+            </li>
+        {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="/signup">Sign Up</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/signin">Sign In</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Property Listing</h1>
+    <form id="propertyForm" action="/estimate_value" method="post">
+        <div id="propertyTypeSection" >
+            <div class="mb-3">
+                <label for="propertyType" class="form-label">Type of Property:</label>
+                <select class="form-select" id="propertyType" name="propertyType" >
+                    <option value="land">Land</option>
+                    <option value="villa">Villa</option>
+                    <option value="apartment">Apartment</option>
+                </select>
+            </div>
+             <div class="mb-3" id="predictYearSection">
+                <label for="constructYear" class="form-label">Prediction Year:</label>
+                <input type="number" class="form-control" id="predictYear" name="predictYear" min="1900" max="9999">
+            </div>
+            <div class="mb-3">
+                <button type="button" id="goToMap" class="btn btn-primary">Confirm Data and Go to Map</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    #goToMap {
+        margin-bottom: 20px;
+    }
+</style>
+
+<script>
+
+    document.getElementById('goToMap').addEventListener('click', function() {
+        var propertyType = document.getElementById('propertyType').value;
+        var predictYear = document.getElementById('predictYear').value;
+        if ((propertyType && predictYear )) {
+            document.getElementById('propertyForm').submit();
+        } else {
+            alert('Please fill all the required fields.');
+        }
+    });
+</script>
+{% endblock %}

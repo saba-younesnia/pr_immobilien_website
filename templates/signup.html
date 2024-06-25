@@ -1,0 +1,86 @@
+{% extends "template.html" %}
+
+{% block title %}
+Signup Page
+{% endblock %}
+
+{% block content %}
+<form id="signupForm" method="post" action="/signup">
+    <div class="container mt-5">
+        <h2>Signup</h2>
+        <div class="mb-3">
+            <label for="name" class="form-label">Name/ Name of Owner</label>
+            <input type="text" class="form-control" id="name" name="name">
+        </div>
+        <div class="mb-3">
+            <label for="familyname" class="form-label">Family Name/ Family Name of Owner</label>
+            <input type="text" class="form-control" id="familyname" name="familyname">
+        </div>
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" onblur="checkUsername()">
+            <span id="usernameError" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" onblur="checkPassword()">
+            <span id="passwordError" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" onblur="checkEmail()">
+            <span id="emailError" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Signup</button>
+    </div>
+</form>
+{% endblock %}
+
+{% block header_links %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/signin">Sign In</a>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    function checkUsername() {
+        var username = document.getElementById("username").value;
+        $.post("/check_username", { username: username }, function(data) {
+            if (data.exists) {
+                document.getElementById("usernameError").innerText = "Username is already taken.";
+            } else {
+                document.getElementById("usernameError").innerText = "";
+            }
+        });
+    }
+
+    function checkPassword() {
+        var password = document.getElementById("password").value;
+        if (password.length < 8) {
+            document.getElementById("passwordError").innerText = "Password must be at least 8 characters long.";
+        } else {
+            document.getElementById("passwordError").innerText = "";
+        }
+    }
+
+    function checkEmail() {
+        var email = document.getElementById("email").value;
+        $.post("/check_email", { email: email }, function(data) {
+            if (data.exists) {
+                document.getElementById("emailError").innerText = "Email is already registered.";
+            } else {
+                document.getElementById("emailError").innerText = "";
+            }
+        });
+    }
+</script>
+{% endblock %}

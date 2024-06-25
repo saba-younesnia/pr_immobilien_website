@@ -1,0 +1,138 @@
+{% extends "template.html" %}
+
+{% block title %}
+Favorited Properties
+{% endblock %}
+
+{% block header_links %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto custom-navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        {% if session['user_id'] %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-fill"></i>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/add_property">Add Property</a></li>
+                    <li><a class="dropdown-item" href="/favorited_posts">Save Properties</a></li>
+                    <li><a class="dropdown-item" href="/user_properties">Your Properties</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/signout">Sign Out</a></li>
+                </ul>
+            </li>
+        {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="/signup">Sign Up</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/signin">Sign In</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<form method="post" action="/favorited_posts">
+<div class="container mt-5">
+    <h1 class="mb-4">All Properties</h1>
+    <div class="row">
+        {% for property in properties %}
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-img-top">
+                    {% if property.image_paths %}
+                    <img src="{{ url_for('static', filename=property.image_paths[0].replace('static/', '')) }}" alt="...">
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">${{ property.price }}</h5>
+                    <p class="card-text">{{ property.address }}</p>
+                    <p class="card-text"><small class="text-muted">{{ property.area }} m²</small></p>
+                    <a href="/property/{{ property.property_id }}" class="btn btn-primary">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+</form>
+<script>
+    function updatePriceInputs() {
+        const salePriceInputs = document.getElementById('salePriceInputs');
+        const rentPriceInputs = document.getElementById('rentPriceInputs');
+        const forSale = document.getElementById('forSale').checked;
+
+        if (forSale) {
+            salePriceInputs.style.display = 'block';
+            rentPriceInputs.style.display = 'none';
+        } else {
+            salePriceInputs.style.display = 'none';
+            rentPriceInputs.style.display = 'block';
+        }
+    }
+
+    document.querySelectorAll('input[name="filter"]').forEach((input) => {
+        input.addEventListener('change', () => {
+            updatePriceInputs();
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        if (!document.querySelector('input[name="filter"]:checked')) {
+            document.getElementById('forSale').checked = true;
+        }
+        updatePriceInputs();
+    });
+
+</script>
+{% endblock %}
+
+<style>
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+}
+
+.card img {
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+.card-img-top img {
+    height: 200px;
+    object-fit: cover;
+    border: 2px solid #ddd;
+    padding: 5px;
+    background-color: #fff;
+}
+
+.card-body {
+    text-align: center;
+}
+
+.form-check-input:checked + .form-check-label {
+    font-weight: bold;
+}
+
+.form-check {
+    margin-bottom: 10px;
+}
+
+.btn-group {
+    align-items: center;
+}
+
+.custom-navbar-nav {
+    margin-right: 10px;
+}
+</style>
