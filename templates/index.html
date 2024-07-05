@@ -1,0 +1,108 @@
+{% extends "template.html" %}
+
+{% block title %}
+My Website
+{% endblock %}
+
+{% block header_links %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        {% if not session.get('user_id') %}
+        <li class="nav-item">
+            <a class="nav-link" href="/signup">Sign Up</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/signin">Sign In</a>
+        </li>
+        {% endif %}
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-person-fill"></i>
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <li><a class="dropdown-item" href="#" onclick="checkSession('/add_property')">Add Property</a></li>
+                <li><a class="dropdown-item" href="#" onclick="checkSession('/estimate_value')">Estimate Value</a></li>
+                <li><a class="dropdown-item" href="#" onclick="checkSession('/favorited_posts')">Saved Properties</a></li>
+                <li><a class="dropdown-item" href="#" onclick="checkSession('/user_properties')">Your Properties</a></li>
+                <li><a class="dropdown-item" href="#" onclick="checkSession('/conversations')">Your Chats</a></li>
+                {% if session.get('user_id') %}
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/signout">Sign Out</a></li>
+                {% endif %}
+            </ul>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<form action="/" method="post">
+    <main>
+        <div class="container mt-4">
+            <div class="row">
+                <div class="col">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="search-input" name="search" placeholder="Search..." aria-label="Search" aria-describedby="button-addon2">
+                        <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Search</button>
+                    </div>
+                    <ul id="suggestions-list" class="list-group"></ul>
+                </div>
+            </div>
+        </div>
+    </main>
+</form>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.getElementById('search-input');
+    const suggestionsList = document.getElementById('suggestions-list');
+
+    const fetchSuggestions = (query) => {
+        fetch(`/suggestions?query=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                suggestionsList.innerHTML = '';
+                data.forEach(item => {
+                    const suggestionItem = document.createElement('li');
+                    suggestionItem.textContent = item;
+                    suggestionItem.classList.add('list-group-item');
+                    suggestionItem.addEventListener('click', () => {
+                        searchInput.value = item;
+                        suggestionsList.innerHTML = '';
+                    });
+                    suggestionsList.appendChild(suggestionItem);
+                });
+            });
+    };
+
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value;
+        fetchSuggestions(query);
+    });
+
+    searchInput.addEventListener('focus', () => {
+        if (searchInput.value === '') {
+            fetchSuggestions('');
+        }
+    });
+});
+
+function checkSession(url) {
+    const userId = {{ 'true' if session.get('user_id') else 'false' }};
+    if (userId) {
+        window.location.href = url;
+    } else {
+        if (confirm('You have to sign in first')) {
+            window.location.href = '/signin';
+        }
+    }
+}
+</script>
+
+{% endblock %}

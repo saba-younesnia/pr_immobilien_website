@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map of Berlin, Germany</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        #map { height: 400px; }
+        .address-box {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+    <div class="address-box" id="address">Address: -</div>
+    <button onclick="confirmAddress()" style="margin-top: 10px;">Confirm Address</button>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        var map = L.map('map').setView([52.52, 13.405], 14);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        var marker;
+        var currentLatLng = null;
+
+        map.on('click', function(e) {
+            if (marker) {
+                map.removeLayer(marker);
+            }
+            marker = L.marker(e.latlng).addTo(map);
+            currentLatLng = e.latlng;
+            getAddress(e.latlng);
+        });
+
+        function getAddress(latlng) {
+            var lat = latlng.lat;
+            var lng = latlng.lng;
+
+            fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1')
+                .then(response => response.json())
+                .then(data => {
+                    var address = formatGermanAddress(data.address);
+                    document.getElementById('address').innerText = 'Address: ' + address;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function formatGermanAddress(address) {
+            var formattedAddress = '';
+            if (address.road) formattedAddress += address.road;
+            if (address.house_number) formattedAddress += ' ' + address.house_number;
+            if (address.postcode) formattedAddress += ', ' + address.postcode;
+            if (address.city) formattedAddress += ' ' + address.city;
+            if (address.state) formattedAddress += ', ' + address.state;
+            if (address.country) formattedAddress += ', ' + address.country;
+            return formattedAddress;
+        }
+
+        function confirmAddress() {
+            var address = document.getElementById('address').innerText;
+            if (address !== 'Address: -' && currentLatLng) {
+                fetch('/submit-address', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ address: address, latlng: currentLatLng })
+                })
+                .then(response => response.text())
+                .then(html => {
+                    document.open();
+                    document.write(html);
+                    document.close();
+                })
+                .catch(error => console.error('Error:', error));
+            } else {
+                alert('Please click on the map to select an address first.');
+            }
+        }
+    </script>
+</body>
+</html>

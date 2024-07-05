@@ -1,0 +1,237 @@
+{% extends "template.html" %}
+
+{% block title %}
+All Properties
+{% endblock %}
+
+{% block header_links %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto custom-navbar-nav">
+        <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        {% if session['user_id'] %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-fill"></i>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/add_property">Add Property</a></li>
+                    <li><a class="dropdown-item" href="/estimate_value">Estimate Value</a></li>
+                    <li><a class="dropdown-item" href="/favorited_posts">Saved Properties</a></li>
+                    <li><a class="dropdown-item" href="/user_properties">Your Properties</a></li>
+                    <li><a class="dropdown-item" href="/conversations">Your Chats</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/signout">Sign Out</a></li>
+                </ul>
+            </li>
+        {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="/signup">Sign Up</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/signin">Sign In</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+
+    <form id="filterForm" method="post" action="/all_posts">
+        <div class="d-flex align-items-center mb-4" role="group" aria-label="Filter options">
+            <!-- Filter Properties Dropdown -->
+            <div class="dropdown me-2">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="filterDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Filter Properties
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="filterDropdown">
+                    <li>
+                        <div class="form-check ms-3 my-2">
+                            <input class="form-check-input" type="radio" name="filter" id="forSale" value="sale" {% if request.args.get('filter') == 'sale' or not request.args.get('filter') %}checked{% endif %}>
+                            <label class="form-check-label" for="forSale">
+                                For Sale
+                            </label>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="form-check ms-3 my-2">
+                            <input class="form-check-input" type="radio" name="filter" id="forRent" value="rent" {% if request.args.get('filter') == 'rent' %}checked{% endif %}>
+                            <label class="form-check-label" for="forRent">
+                                For Rent
+                            </label>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="dropdown me-2">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="priceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Filter Price
+                </button>
+                <ul class="dropdown-menu p-3" aria-labelledby="priceDropdown" style="min-width: 250px;">
+
+                    <div id="salePriceInputs" class="price-inputs">
+                        <div class="mb-3">
+                            <label for="minPrice" class="form-label">Min Price</label>
+                            <input type="number" class="form-control" id="minPrice" name="min_price" min="0" value="{{ request.args.get('min_price', '') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxPrice" class="form-label">Max Price</label>
+                            <input type="number" class="form-control" id="maxPrice" name="max_price" min="0" value="{{ request.args.get('max_price', '') }}">
+                        </div>
+                    </div>
+
+                    <div id="rentPriceInputs" class="price-inputs" style="display: none;">
+                        <div class="mb-3">
+                            <label for="minMonthlyRent" class="form-label">Min Monthly Rent</label>
+                            <input type="number" class="form-control" id="minMonthlyRent" name="min_monthly_rent" min="0" value="{{ request.args.get('min_monthly_rent', '') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxMonthlyRent" class="form-label">Max Monthly Rent</label>
+                            <input type="number" class="form-control" id="maxMonthlyRent" name="max_monthly_rent" min="0" value="{{ request.args.get('max_monthly_rent', '') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="minDeposit" class="form-label">Min Deposit</label>
+                            <input type="number" class="form-control" id="minDeposit" name="min_deposit" min="0" value="{{ request.args.get('min_deposit', '') }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxDeposit" class="form-label">Max Deposit</label>
+                            <input type="number" class="form-control" id="maxDeposit" name="max_deposit" min="0" value="{{ request.args.get('max_deposit', '') }}">
+                        </div>
+                    </div>
+                </ul>
+            </div>
+
+            <div class="dropdown me-2">
+                <button class="btn btn-secondary dropdown-toggle" type="button" id="areaDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    Filter Area
+                </button>
+                <ul class="dropdown-menu p-3" aria-labelledby="areaDropdown" style="min-width: 250px;">
+                    <div class="mb-3">
+                        <label for="minArea" class="form-label">Min Area (m²)</label>
+                        <input type="number" class="form-control" id="minArea" name="min_area" min="0" value="{{ request.args.get('min_area', '') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="maxArea" class="form-label">Max Area (m²)</label>
+                        <input type="number" class="form-control" id="maxArea" name="max_area" min="0" value="{{ request.args.get('max_area', '') }}">
+                    </div>
+                </ul>
+            </div>
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+        </div>
+    </form>
+
+    <div class="row">
+        {% for property in properties %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 d-flex flex-column">
+                {% if property.image_paths %}
+                <img class="card-img-top" src="{{ url_for('static', filename=property.image_paths[0].replace('static/', '')) }}" alt="...">
+                {% endif %}
+                <div class="card-body d-flex flex-column">
+                    {% if property.status %}
+                        <p class="card-text"><small class="text-muted">for {{ property.status }}</small></p>
+                    {% endif %}
+                    {% if property.price %}
+                        <h5 class="card-title"><span class="label" style="font-size: 0.8em; color: #888888;">Price:</span> {{ property.price }}</h5>
+                    {% endif %}
+                    {% if property.monthly_rent %}
+                        <h5 class="card-title"><span class="label" style="font-size: 0.8em; color: #888888;">Monthly Rent:</span> {{ property.monthly_rent }}</h5>
+                    {% endif %}
+                    {% if property.deposit %}
+                        <h5 class="card-title"><span class="label" style="font-size: 0.8em; color: #888888;">Deposit:</span> {{ property.deposit }}</h5>
+                    {% endif %}
+                    <p class="card-text">{{ property.address }}</p>
+                    <p class="card-text"><small class="text-muted">{{ property.area }} m²</small></p>
+                    <div class="mt-auto">
+                        <a href="/property/{{ property.property_id }}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+    function updatePriceInputs() {
+        const salePriceInputs = document.getElementById('salePriceInputs');
+        const rentPriceInputs = document.getElementById('rentPriceInputs');
+        const forSale = document.getElementById('forSale').checked;
+
+        if (forSale) {
+            salePriceInputs.style.display = 'block';
+            rentPriceInputs.style.display = 'none';
+        } else {
+            salePriceInputs.style.display = 'none';
+            rentPriceInputs.style.display = 'block';
+        }
+    }
+
+    document.querySelectorAll('input[name="filter"]').forEach((input) => {
+        input.addEventListener('change', () => {
+            updatePriceInputs();
+        });
+    });
+
+    document.addEventListener('DOMContentLoaded', (event) => {
+        if (!document.querySelector('input[name="filter"]:checked')) {
+            document.getElementById('forSale').checked = true;
+        }
+        updatePriceInputs();
+    });
+
+</script>
+{% endblock %}
+
+<style>
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    flex-grow: 1;
+}
+
+.card .btn {
+    margin-top: auto;
+}
+
+.form-check-input:checked + .form-check-label {
+    font-weight: bold;
+}
+
+.form-check {
+    margin-bottom: 10px;
+}
+
+.btn-group {
+    align-items: center;
+}
+
+.custom-navbar-nav {
+    margin-right: 10px;
+}
+
+.card-img-top {
+    height: 50%;
+    object-fit: cover;
+    object-position: center;
+}
+</style>

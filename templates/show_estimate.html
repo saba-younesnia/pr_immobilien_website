@@ -1,0 +1,69 @@
+{% extends "template.html" %}
+
+{% block title %}Price Info{% endblock %}
+
+{% block header_links %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact</a>
+        </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-fill"></i>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/add_property">Add Property</a></li>
+                    <li><a class="dropdown-item" href="/estimate_value">Estimate Value</a></li>
+                    <li><a class="dropdown-item" href="/favorited_posts">Saved Properties</a></li>
+                    <li><a class="dropdown-item" href="/user_properties">Your Properties</a></li>
+                    <li><a class="dropdown-item" href="/conversations">Your Chats</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/signout">Sign Out</a></li>
+                </ul>
+            </li>
+    </ul>
+</div>
+{% endblock %}
+
+
+{% block content %}
+<div class="container mt-5">
+    <h2 class="mb-4">Select Price Type</h2>
+    <div id="priceInfo">
+        <div class="mb-3">
+            <label for="minPrice" class="form-label">Minimum Price per m<sup>2</sup></label>
+            <input type="text" class="form-control" id="minPrice" value="{{ min_price }}" readonly>
+        </div>
+
+        <div class="mb-3">
+            <label for="maxPrice" class="form-label">Maximum Price per m<sup>2</sup></label>
+            <input type="text" class="form-control" id="maxPrice" value="{{ max_price }}" readonly>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        fetch("/show_estimate", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                minPrice: document.getElementById("minPrice").value,
+                maxPrice: document.getElementById("maxPrice").value
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById("minPrice").value = data.min_price;
+            document.getElementById("maxPrice").value = data.max_price;
+        })
+        .catch(error => console.error("Error:", error));
+    });
+</script>
+{% endblock %}

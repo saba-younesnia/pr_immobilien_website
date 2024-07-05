@@ -1,0 +1,209 @@
+{% extends "template.html" %}
+
+{% block title %}
+My Property Page
+{% endblock %}
+
+{% block header_links %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        {% if user_id %}
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-fill"></i>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/add_property">Add Property</a></li>
+                    <li><a class="dropdown-item" href="/estimate_value">Estimate Value</a></li>
+                    <li><a class="dropdown-item" href="/favorited_posts">Saved Properties</a></li>
+                    <li><a class="dropdown-item" href="/user_properties">Your Properties</a></li>
+                    <li><a class="dropdown-item" href="/conversations">Your Chats</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/signout">Sign Out</a></li>
+                </ul>
+            </li>
+        {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="/signup">Sign Up</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/signin">Sign In</a>
+            </li>
+        {% endif %}
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<form id="propertyForm" action="/post" method="post">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="mb-0">         </h1>
+        <a href="/view" class="btn btn-outline-primary mt-2">
+            <i class="bi bi-map"></i> See the map
+        </a>
+    </div>
+    <div class="container mt-5">
+        <h1 class="mb-4">Property Details</h1>
+        <div id="imageScroller" class="carousel slide mb-4" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                {% for image_path in image_paths %}
+                <div class="carousel-item {% if loop.first %} active {% endif %}">
+                    <div class="square-frame" onclick="showImage(this)">
+                        <img src="{{ url_for('static', filename=image_path.replace('static/', '')) }}" class="d-block w-100" alt="Image">
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#imageScroller" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#imageScroller" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+        <div class="mb-3">
+            <label for="caption" class="form-label">Caption:</label>
+            <textarea class="form-control" id="caption" name="caption" rows="3" placeholder="Write a caption"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="listing_type" class="form-label">Listing Type:</label>
+            <input type="text" class="form-control" id="listing_type" name="listing_type" readonly value="{{ listing_type }}">
+        </div>
+        {% if address %}
+        <div class="mb-3">
+            <label for="address" class="form-label">Address:</label>
+            <input type="text" class="form-control" id="address" name="address" readonly value="{{ address }}">
+        </div>
+        {% endif %}
+        {% if area %}
+        <div class="mb-3">
+            <label for="area" class="form-label">Area:</label>
+            <input type="text" class="form-control" id="area" name="area" value="{{ area }}" readonly>
+        </div>
+        {% endif %}
+        {% if price %}
+        <div class="mb-3">
+            <label for="price" class="form-label">Price:</label>
+            <input type="text" class="form-control" id="price" name="price" readonly value="{{ price }}">
+        </div>
+        {% endif %}
+        {% if deposit %}
+        <div class="mb-3">
+            <label for="deposit" class="form-label">Deposit:</label>
+            <input type="text" class="form-control" id="deposit" name="deposit" readonly value="{{ deposit }}">
+        </div>
+        {% endif %}
+        {% if monthly_rent %}
+        <div class="mb-3">
+            <label for="monthly_rent" class="form-label">Monthly Rent:</label>
+            <input type="text" class="form-control" id="monthly_rent" name="monthly_rent" value="{{ monthly_rent }}" readonly>
+        </div>
+        {% endif %}
+        <a href="/chat_in_post" class="btn btn-primary mb-2">Message</a>
+        <input type="hidden" id="favorite" name="favorite" value="0">
+    </div>
+</form>
+
+<div class="heart-icon" onclick="toggleHeart(this, {{ 'true' if user_id else 'false' }})">
+    <i class="fa {{ 'fa-heart' if turn_red else 'fa-heart-o' }}" aria-hidden="true" style="color: {{ 'red' if turn_red else 'black' }};"></i>
+</div>
+
+<script>
+function showImage(element) {
+    var modal = document.createElement('div');
+    modal.style.position = 'fixed';
+    modal.style.top = '0';
+    modal.style.left = '0';
+    modal.style.width = '100%';
+    modal.style.height = '100%';
+    modal.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    modal.style.display = 'flex';
+    modal.style.justifyContent = 'center';
+    modal.style.alignItems = 'center';
+    modal.onclick = function() {
+        modal.remove();
+    };
+
+    var img = document.createElement('img');
+    img.src = element.querySelector('img').src;
+    img.style.width = '50vw';
+    img.style.height = '50vh';
+    img.style.objectFit = 'contain';
+
+    modal.appendChild(img);
+    document.body.appendChild(modal);
+}
+
+function toggleHeart(element, isLoggedIn) {
+    if (!isLoggedIn) {
+        alert('You should first sign in. Click OK to go to the sign-in page.');
+        window.location.href = '/signin';
+        return;
+    }
+
+    var heartIcon = element.querySelector('i');
+    heartIcon.classList.toggle('fa-heart-o');
+    heartIcon.classList.toggle('fa-heart');
+    heartIcon.style.color = heartIcon.classList.contains('fa-heart') ? 'red' : 'black';
+
+    var favoriteInput = document.getElementById('favorite');
+    favoriteInput.value = heartIcon.classList.contains('fa-heart') ? '1' : '0';
+
+    var xhr = new XMLHttpRequest();
+    xhr.open("POST", "/update_favorite", true);
+    xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+            console.log('Favorite status updated');
+        }
+    };
+    xhr.send("favorite=" + favoriteInput.value);
+}
+</script>
+
+<style>
+.square-frame {
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+    position: relative;
+}
+
+.square-frame img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+#postButton {
+    margin-bottom: 20px;
+}
+
+.heart-icon {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    font-size: 2em;
+    color: black;
+    cursor: pointer;
+}
+
+.heart-icon i {
+    transition: color 0.3s;
+}
+
+.btn-outline-primary.mt-2 {
+    margin-top: 4rem;
+    margin-right: 5rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,226 @@
+{% extends "template.html" %}
+
+{% block title %}
+Property Information
+{% endblock %}
+
+{% block header_links %}
+<div class="collapse navbar-collapse" id="navbarNav">
+    <ul class="navbar-nav ms-auto">
+        <li class="nav-item">
+            <a class="nav-link" href="#about">About</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#contact">Contact</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="/">Home</a>
+        </li>
+        <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person-fill"></i>
+                </a>
+                <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                    <li><a class="dropdown-item" href="/add_property">Add Property</a></li>
+                    <li><a class="dropdown-item" href="/estimate_value">Estimate Value</a></li>
+                    <li><a class="dropdown-item" href="/favorited_posts">Saved Properties</a></li>
+                    <li><a class="dropdown-item" href="/user_properties">Your Properties</a></li>
+                    <li><a class="dropdown-item" href="/conversations">Your Chats</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="/signout">Sign Out</a></li>
+                </ul>
+        </li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1 class="mb-4">Property Listing</h1>
+    <form id="propertyForm" action="/submit_info" method="post" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="listingType" class="form-label">Choose Listing Type:</label>
+            <select class="form-select" id="listingType" name="listingType">
+                <option value="sale">For Sale</option>
+                <option value="rent">For Rent</option>
+            </select>
+        </div>
+        <div id="propertyTypeSection" style="display: none;">
+            <div class="mb-3">
+                <label for="propertyType" class="form-label">Type of Property:</label>
+                <select class="form-select" id="propertyType" name="propertyType">
+                    <option value="land">Land</option>
+                    <option value="villa">Villa</option>
+                    <option value="apartment">Apartment</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+            <div id="customPropertyTypeSection" style="display: none;">
+                <div class="mb-3">
+                    <label for="customPropertyType" class="form-label">Type of Custom Property:</label>
+                    <input type="text" class="form-control" id="customPropertyType" name="customPropertyType" placeholder="Enter custom property type">
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="area" class="form-label">Area (m<sup>2</sup>):</label>
+                <input type="number" class="form-control" id="area" name="area" min="1" required>
+            </div>
+            <div class="mb-3" id="priceSection" style="display: none;">
+                <label for="price" class="form-label">Price:</label>
+                <input type="number" class="form-control" id="price" name="price" min="1" required>
+            </div>
+            <div class="mb-3" id="depositSection" style="display: none;">
+                <label for="deposit" class="form-label">Deposit:</label>
+                <input type="number" class="form-control" id="deposit" name="deposit" min="1" required>
+            </div>
+            <div class="mb-3" id="monthlyRentSection" style="display: none;">
+                <label for="monthlyRent" class="form-label">Monthly Rent:</label>
+                <input type="number" class="form-control" id="monthlyRent" name="monthlyRent" min="1" required>
+            </div>
+            <div class="mb-3">
+                <label for="caption" class="form-label">Caption:</label>
+                <input type="text" class="form-control" id="caption" name="caption" placeholder="Additional Explanation">
+            </div>
+            <div class="mb-3">
+                <label for="pictures" class="form-label">Upload Pictures (Max 10):</label>
+                <input type="file" id="pictures" name="pictures[]" accept="image/*" multiple style="display: none;" required>
+                <label for="pictures" class="upload-button">
+                    <div class="upload-icon">&#43;</div>
+                    <div class="upload-text">Upload Pictures</div>
+                </label>
+                <div id="imageValidationMessage" class="text-danger" style="display: none;"></div>
+            </div>
+            <div class="mb-3">
+                <button type="button" id="goToMap" class="btn btn-primary">Confirm Data and Go to Map</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .upload-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #ccc;
+        border-radius: 10px;
+        width: 150px;
+        height: 150px;
+        cursor: pointer;
+        overflow: hidden;
+    }
+
+    .upload-icon-square {
+        width: 50%;
+        height: 50%;
+        font-size: 60px;
+    }
+
+    .upload-text {
+        font-size: 16px;
+    }
+
+    #goToMap {
+    margin-bottom: 20px;
+    }
+
+</style>
+
+<script>
+    document.getElementById('listingType').addEventListener('change', function() {
+        var selectedValue = this.value;
+        var propertyTypeSection = document.getElementById('propertyTypeSection');
+        var priceSection = document.getElementById('priceSection');
+        var depositSection = document.getElementById('depositSection');
+        var monthlyRentSection = document.getElementById('monthlyRentSection');
+
+        if (selectedValue === 'sale') {
+            propertyTypeSection.style.display = 'block';
+            priceSection.style.display = 'block';
+            depositSection.style.display = 'none';
+            monthlyRentSection.style.display = 'none';
+        } else if (selectedValue === 'rent') {
+            propertyTypeSection.style.display = 'block';
+            priceSection.style.display = 'none';
+            depositSection.style.display = 'block';
+            monthlyRentSection.style.display = 'block';
+        }
+    });
+
+    document.getElementById('goToMap').addEventListener('click', function() {
+    var listingType = document.getElementById('listingType').value;
+    var propertyType = document.getElementById('propertyType').value;
+    var area = document.getElementById('area').value;
+    var price = document.getElementById('price').value;
+    var deposit = document.getElementById('deposit').value;
+    var monthlyRent = document.getElementById('monthlyRent').value;
+
+    if ((listingType === 'sale' && propertyType && area && price) || (listingType === 'rent' && propertyType && area && deposit && monthlyRent)) {
+        document.getElementById('propertyForm').submit();
+        }
+    else {
+        alert('Please fill all the required fields.');
+    }
+});
+
+    document.getElementById('pictures').addEventListener('change', function() {
+        var picturesInput = document.getElementById('pictures');
+        var validationMessage = '';
+
+        for (var i = 0; i < picturesInput.files.length; i++) {
+            var file = picturesInput.files[i];
+            var validationResult = validateImage(file);
+            if (!validationResult.isValid) {
+                validationMessage += validationResult.message + '<br>';
+            }
+        }
+
+        if (validationMessage !== '') {
+            document.getElementById('imageValidationMessage').innerHTML = validationMessage;
+            document.getElementById('imageValidationMessage').style.display = 'block';
+            document.getElementById('pictures').value = '';
+        } else {
+            document.getElementById('imageValidationMessage').style.display = 'none';
+        }
+    });
+
+    function validateImage(file) {
+        var acceptedFormats = ['image/jpeg', 'image/png', 'image/gif', 'image/bmp'];
+        var maxSizeMB = 10;
+        var maxWidth = 1920;
+        var maxHeight = 1080;
+
+        var validationResult = {
+            isValid: true,
+            message: ''
+        };
+
+        if (!acceptedFormats.includes(file.type)) {
+            validationResult.isValid = false;
+            validationResult.message += 'Invalid format. Please upload images in JPEG, PNG, GIF, or BMP format.<br>';
+        }
+
+        if (file.size / (1024 * 1024) > maxSizeMB) {
+            validationResult.isValid = false;
+            validationResult.message += 'File size exceeds the maximum limit of ' + maxSizeMB + 'MB.<br>';
+        }
+
+        var img = new Image();
+        img.src = URL.createObjectURL(file);
+
+        img.onload = function() {
+            if (img.width > maxWidth || img.height > maxHeight) {
+                validationResult.isValid = false;
+                validationResult.message += 'Image dimensions exceed the maximum limit of ' + maxWidth + 'x' + maxHeight + ' pixels.<br>';
+            }
+        };
+
+        img.onerror = function() {
+            validationResult.isValid = false;
+            validationResult.message += 'Error loading image.<br>';
+        };
+
+        return validationResult;
+    }
+</script>
+{% endblock %}
